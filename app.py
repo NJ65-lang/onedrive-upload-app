@@ -18,16 +18,23 @@ FOLDER_OPTIONS = {
 }
 
 def get_access_token():
-    app = ConfidentialClientApplication(
-        CLIENT_ID,
-        authority=AUTHORITY,
-        client_credential=CLIENT_SECRET
-    )
-    result = app.acquire_token_for_client(scopes=SCOPE)
-    if "access_token" in result:
-        return result["access_token"]
-    else:
-        st.error("❌ Error getting access token: " + str(result.get("error_description")))
+    try:
+        app = ConfidentialClientApplication(
+            st.secrets["CLIENT_ID"],
+            authority=f"https://login.microsoftonline.com/{st.secrets['TENANT_ID']}",
+            client_credential=st.secrets["CLIENT_SECRET"]
+        )
+        result = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+        
+        if "access_token" in result:
+            st.success("✅ Access token acquired successfully.")
+            return result["access_token"]
+        else:
+            st.error("❌ Failed to get token.")
+            st.json(result)  # Print the full error
+            return None
+    except Exception as e:
+        st.error(f"💥 Exception while getting token: {e}")
         return None
 
 def upload_file_to_onedrive(access_token, folder_name, file):
