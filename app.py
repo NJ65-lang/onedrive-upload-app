@@ -51,14 +51,28 @@ def upload_file_to_onedrive(access_token, folder_name, file):
         return False, response.text
 
 def main():
-    st.set_page_config(page_title="OneDrive Upload Portal", page_icon="📤")
-    st.title("📤 Upload Files to OneDrive")
+    st.title("📁 Real OneDrive Upload & RAG App")
 
-    selected_folder = st.selectbox("📁 Choose OneDrive Folder", list(FOLDER_OPTIONS.keys()))
-    uploaded_file = st.file_uploader("📎 Select a file to upload")
+    try:
+        selected_folder = st.selectbox("Choose OneDrive Folder to Upload Into", list(FOLDER_OPTIONS.keys()))
+        uploaded_file = st.file_uploader("Upload your file here")
 
-    if uploaded_file:
-        token = get_access_token()
-        if token:
-            with st.spinner("⏳ Uploading..."):
-                success, info = u
+        if uploaded_file is not None:
+            token = get_access_token()
+            if token:
+                with st.spinner("Uploading file to OneDrive..."):
+                    success, info = upload_file_to_onedrive(token, FOLDER_OPTIONS[selected_folder], uploaded_file)
+                if success:
+                    st.success(f"✅ File uploaded successfully! [Open File]({info})")
+                else:
+                    st.error("❌ Upload failed")
+                    st.text(info)
+            else:
+                st.error("⚠️ Could not get access token.")
+    except Exception as e:
+        st.error("💥 App crashed with exception:")
+        st.exception(e)
+
+    st.divider()
+    st.text("🔍 Search functionality coming soon...")
+    st.stop()  # Stops execution to avoid blinking
